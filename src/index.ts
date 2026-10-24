@@ -32,21 +32,26 @@ app.get("/products/:id" , async (c) => {
     }
 
     if(config.enableSingleflight){
-        const {val:data , shared} = await sf.do(id , async () => {
-            // re-check the cache inside the lock to prevent redundant db calls
-            const doubleCheck = await cache.get(id);
-            if(doubleCheck) return doubleCheck;
-
-            const { db_result } = await fetchFromDB(id);
-            await cache.set(id , db_result , 10000);
-            return db_result;
-        });
-
-        if (shared) {
-            metrics.singleFlightHits++;
+        try{
+            const {val:data , shared} = await sf.do(id , async () => {
+                // re-check the cache inside the lock to prevent redundant db calls
+                const doubleCheck = await cache.get(id);
+                if(doubleCheck) return doubleCheck;
+    
+                const { db_result } = await fetchFromDB(id);
+                await cache.set(id , db_result , 10000);
+                return db_result;
+            });
+    
+            if (shared) {
+                metrics.singleFlightHits++;
+            }
+    
+            return c.json({data , shared , cacheHIT : false});
+        }catch(err:any){
+            console.error(`[SingleFlight Error] Failed to fetch product ${id}:`, err.message);
+            return c.json({ error: "Database unavailable or query failed", message: err.message }, 503);
         }
-
-        return c.json({data , shared , cacheHIT : false});
     }else{
         // stampede path
         try {

@@ -19,4 +19,10 @@ export const postgres_ = new Pool({
     connectionString: config.databaseUrl,
     max: 10,                       // Maximum 10 physical connections to Postgres
     connectionTimeoutMillis: 300,  // If all 10 are busy and a query waits > 300ms, POOL THROWS ERROR!
+    query_timeout: 5000,           // Max 3s for query execution before aborting
+    statement_timeout: 5000        // Tells Postgres engine to cancel queries > 3s
+});
+
+postgres_.on("error", (err) => {
+    console.error("Unexpected error on idle PostgreSQL client:", err);
 });
