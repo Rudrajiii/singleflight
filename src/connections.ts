@@ -4,8 +4,7 @@ import { config } from "./config";
 
 export const redis_ = new Redis(config.redisUrl , {
     maxRetriesPerRequest: 1,
-    enableOfflineQueue: false,
-    commandTimeout: 300,
+    commandTimeout: 15000, 
     retryStrategy(times) {
         return Math.min(times * 50 , 2000);
     },
@@ -19,8 +18,8 @@ export const postgres_ = new Pool({
     connectionString: config.databaseUrl,
     max: 10,                       // Maximum 10 physical connections to Postgres
     connectionTimeoutMillis: 300,  // If all 10 are busy and a query waits > 300ms, POOL THROWS ERROR!
-    query_timeout: 5000,           // Max 3s for query execution before aborting
-    statement_timeout: 5000        // Tells Postgres engine to cancel queries > 3s
+    query_timeout: 5000,           // Max 5s for query execution before aborting
+    statement_timeout: 5000        // Tells Postgres engine to cancel queries > 5s
 });
 
 postgres_.on("error", (err) => {

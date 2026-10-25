@@ -83,3 +83,20 @@ export async function fetchFromDB(key:string): Promise<DBQueryResult> {
     return {query_status: 'success' , db_result: `[DB Record: ${product.name} ($${product.price}) - ${product.description}]` , status_code: 200};
 
 }
+
+
+export function isTransientError(err: any): boolean {
+    if (!err) return false;
+    const msg = err.message || "";
+    const code = err.code || "";
+
+    return (
+        code === "ECONNRESET" ||
+        code === "ETIMEDOUT" ||
+        code === "57P01" || // admin_shutdown (Postgres restart)
+        code === "40P01" || // deadlock_detected
+        code === "40001" || // serialization_failure
+        msg.includes("timeout exceeded") ||
+        msg.includes("Connection terminated")
+    );
+}

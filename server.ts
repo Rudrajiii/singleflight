@@ -3,7 +3,7 @@ import { config } from './src/config'
 
 
 const server = Bun.serve({
-    hostname: "localhost", 
+    hostname: "0.0.0.0", 
     port: config.port || 1928,
     fetch: app.fetch,
 });

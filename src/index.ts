@@ -1,7 +1,7 @@
 import {Hono} from "hono";
 import {config} from './config';
 import { SingleFlight } from "./singleflight";
-import { cache , fetchFromDB } from "./services";
+import { cache , fetchFromDB , isTransientError} from "./services";
 import { metrics } from "./metrics";
 
 const app = new Hono();
@@ -41,6 +41,10 @@ app.get("/products/:id" , async (c) => {
                 const { db_result } = await fetchFromDB(id);
                 await cache.set(id , db_result , 10000);
                 return db_result;
+            } , {
+                retries: 1,
+                retryDelayMs: 50,
+                shouldRetry: isTransientError
             });
     
             if (shared) {
